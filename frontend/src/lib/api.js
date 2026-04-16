@@ -19,3 +19,23 @@ export async function fetchBook(bookId) {
 
   return response.json()
 }
+
+export async function askQuestion({ question, bookId = null, topK = 5 }) {
+  const response = await fetch(`${API_BASE_URL}/ask/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      question,
+      book_id: bookId ? Number(bookId) : null,
+      top_k: topK,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to ask the assistant (${response.status})`)
+  }
+
+  return response.json()
+}
