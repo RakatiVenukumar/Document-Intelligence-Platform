@@ -7,6 +7,8 @@ class Book(models.Model):
 	description = models.TextField(blank=True, default="")
 	rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
 	url = models.URLField(max_length=500, unique=True)
+	summary = models.TextField(blank=True, default="")
+	genre = models.CharField(max_length=100, blank=True, default="")
 
 	class Meta:
 		ordering = ["title"]

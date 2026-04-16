@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 
 from .models import Book
 from .serializers import AskQuestionSerializer, BookSerializer
+from rag.insights import BookInsightService
 from rag.pipeline import BookRAGPipeline
 
 
@@ -20,6 +21,10 @@ class BookDetailAPIView(generics.RetrieveAPIView):
 class BookUploadAPIView(generics.CreateAPIView):
 	queryset = Book.objects.all()
 	serializer_class = BookSerializer
+
+	def perform_create(self, serializer):
+		book = serializer.save()
+		BookInsightService().generate_insights(book, persist=True)
 
 
 class BookAskAPIView(APIView):
