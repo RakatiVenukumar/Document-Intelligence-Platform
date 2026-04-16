@@ -7,6 +7,7 @@ export default function DashboardPage() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -34,7 +35,13 @@ export default function DashboardPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [refreshKey])
+
+  function handleRetry() {
+    setError('')
+    setLoading(true)
+    setRefreshKey((value) => value + 1)
+  }
 
   const averageRating = useMemo(() => {
     const numericRatings = books
@@ -74,12 +81,37 @@ export default function DashboardPage() {
       </section>
 
       {loading ? (
-        <section className="rounded-[2rem] border border-dashed border-black/15 bg-white/60 p-10 text-center text-sm text-slate-500">
-          Loading books from the backend...
+        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <article
+              key={index}
+              className="rounded-[1.75rem] border border-black/10 bg-white/80 p-6 shadow-sm"
+            >
+              <div className="animate-pulse space-y-4">
+                <div className="h-3 w-24 rounded-full bg-slate-200" />
+                <div className="h-7 w-3/4 rounded-full bg-slate-200" />
+                <div className="h-4 w-1/2 rounded-full bg-slate-200" />
+                <div className="space-y-3 pt-3">
+                  <div className="h-4 rounded-full bg-slate-200" />
+                  <div className="h-4 rounded-full bg-slate-200" />
+                  <div className="h-4 w-5/6 rounded-full bg-slate-200" />
+                </div>
+              </div>
+            </article>
+          ))}
         </section>
       ) : error ? (
         <section className="rounded-[2rem] border border-red-200 bg-red-50 p-8 text-sm text-red-700">
-          {error}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p>{error}</p>
+            <button
+              className="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 font-medium text-white transition hover:bg-red-500"
+              type="button"
+              onClick={handleRetry}
+            >
+              Retry
+            </button>
+          </div>
         </section>
       ) : books.length === 0 ? (
         <section className="rounded-[2rem] border border-dashed border-black/15 bg-white/60 p-10 text-center text-sm text-slate-500">

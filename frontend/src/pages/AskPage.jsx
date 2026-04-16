@@ -102,7 +102,16 @@ export default function AskPage() {
 
       <div className="rounded-[2rem] border border-black/10 bg-ink p-8 text-white shadow-glow">
         <p className="font-display text-xs font-semibold uppercase tracking-[0.35em] text-sand">Answer</p>
-        {answer ? (
+        {loading ? (
+          <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 w-36 rounded-full bg-white/15" />
+              <div className="h-4 w-5/6 rounded-full bg-white/15" />
+              <div className="h-4 w-2/3 rounded-full bg-white/15" />
+              <div className="mt-8 h-24 rounded-[1.25rem] bg-white/10" />
+            </div>
+          </div>
+        ) : answer ? (
           <div className="mt-6 space-y-6">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6">
               <div className="flex flex-wrap items-center gap-3">

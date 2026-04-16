@@ -17,6 +17,7 @@ export default function BookDetailPage() {
   const [book, setBook] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -43,12 +44,38 @@ export default function BookDetailPage() {
     return () => {
       active = false
     }
-  }, [bookId])
+  }, [bookId, refreshKey])
+
+  function handleRetry() {
+    setError('')
+    setLoading(true)
+    setRefreshKey((value) => value + 1)
+  }
 
   if (loading) {
     return (
-      <section className="rounded-[2rem] border border-dashed border-black/15 bg-white/70 p-10 text-center text-sm text-slate-500">
-        Loading book details...
+      <section className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/80 shadow-glow backdrop-blur-xl">
+        <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-5 p-8 sm:p-10">
+            <div className="h-3 w-24 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-10 w-2/3 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-4 w-40 animate-pulse rounded-full bg-slate-200" />
+            <div className="mt-6 flex gap-3">
+              <div className="h-9 w-28 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-9 w-28 animate-pulse rounded-full bg-slate-200" />
+            </div>
+            <div className="space-y-3 pt-6">
+              <div className="h-4 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-4 animate-pulse rounded-full bg-slate-200" />
+              <div className="h-4 w-5/6 animate-pulse rounded-full bg-slate-200" />
+            </div>
+          </div>
+          <aside className="space-y-4 border-t border-black/10 bg-ink p-8 lg:border-l lg:border-t-0">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="h-20 animate-pulse rounded-3xl bg-white/10" />
+            ))}
+          </aside>
+        </div>
       </section>
     )
   }
@@ -56,7 +83,16 @@ export default function BookDetailPage() {
   if (error) {
     return (
       <section className="rounded-[2rem] border border-red-200 bg-red-50 p-8 text-sm text-red-700">
-        {error}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p>{error}</p>
+          <button
+            className="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 font-medium text-white transition hover:bg-red-500"
+            type="button"
+            onClick={handleRetry}
+          >
+            Retry
+          </button>
+        </div>
       </section>
     )
   }
