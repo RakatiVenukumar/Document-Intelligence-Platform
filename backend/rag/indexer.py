@@ -2,6 +2,7 @@ from books.models import Book
 
 from .chunking import TextChunker
 from .embeddings import SentenceTransformerEmbedder
+from .retriever import SimilaritySearchRetriever
 from .store import ChromaVectorStore
 
 
@@ -45,3 +46,13 @@ class BookEmbeddingIndexer:
         for book in books:
             indexed_ids.extend(self.index_book(book))
         return indexed_ids
+
+
+class BookSimilarityService:
+    """Public service for querying indexed book chunks."""
+
+    def __init__(self, retriever=None):
+        self.retriever = retriever or SimilaritySearchRetriever()
+
+    def search(self, question, book_id=None, top_k=5):
+        return self.retriever.search(question=question, book_id=book_id, top_k=top_k)

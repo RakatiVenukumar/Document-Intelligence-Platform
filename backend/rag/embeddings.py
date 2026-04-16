@@ -1,7 +1,5 @@
 from functools import lru_cache
 
-from sentence_transformers import SentenceTransformer
-
 
 class SentenceTransformerEmbedder:
     """Generate normalized embeddings for book chunks and questions."""
@@ -12,6 +10,8 @@ class SentenceTransformerEmbedder:
     @property
     @lru_cache(maxsize=1)
     def model(self):
+        from sentence_transformers import SentenceTransformer
+
         return SentenceTransformer(self.model_name)
 
     def embed_texts(self, texts):
