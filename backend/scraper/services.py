@@ -6,6 +6,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 from books.models import Book
+from rag.indexer import BookEmbeddingIndexer
+from rag.insights import BookInsightService
 
 
 class SeleniumBookScraper:
@@ -58,6 +60,13 @@ class SeleniumBookScraper:
                         "rating": rating,
                     },
                 )
+                BookInsightService().generate_insights(book, persist=True)
+
+                try:
+                    BookEmbeddingIndexer().index_book(book)
+                except Exception:
+                    pass
+
                 saved_books.append(book)
 
                 driver.back()

@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from .models import Book
 from .serializers import AskQuestionSerializer, BookSerializer
 from rag.insights import BookInsightService
+from rag.indexer import BookEmbeddingIndexer
+from rag.recommendations import BookRecommendationService
 from rag.pipeline import BookRAGPipeline
 
 
@@ -25,6 +27,23 @@ class BookUploadAPIView(generics.CreateAPIView):
 	def perform_create(self, serializer):
 		book = serializer.save()
 		BookInsightService().generate_insights(book, persist=True)
+		try:
+			BookEmbeddingIndexer().index_book(book)
+		except Exception:
+			pass
+
+
+class BookRecommendationsAPIView(APIView):
+	def get(self, request, pk):
+		book = Book.objects.get(pk=pk)
+		recommendations = BookRecommendationService().recommend(book)
+		return Response(
+			{
+				"book_id": book.id,
+				"recommendations": recommendations,
+			},
+			status=status.HTTP_200_OK,
+		)
 
 
 class BookAskAPIView(APIView):
