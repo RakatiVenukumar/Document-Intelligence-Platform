@@ -1,4 +1,8 @@
+import hashlib
+import json
 import re
+
+from django.core.cache import cache
 
 from .llm import ChatLLMClient
 
@@ -46,6 +50,15 @@ class BookInsightService:
             return self._fallback_genre(book)
 
     def generate_insights(self, book, persist=True):
+        cache_key = self._cache_key(book)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            if persist:
+                book.summary = cached["summary"]
+                book.genre = cached["genre"]
+                book.save(update_fields=["summary", "genre"])
+            return cached
+
         summary = self.generate_summary(book)
         genre = self.classify_genre(book)
 
@@ -54,7 +67,9 @@ class BookInsightService:
             book.genre = genre
             book.save(update_fields=["summary", "genre"])
 
-        return {"summary": summary, "genre": genre}
+        result = {"summary": summary, "genre": genre}
+        cache.set(cache_key, result, timeout=3600)
+        return result
 
     def _compose_context(self, book):
         return "\n".join(
@@ -103,3 +118,16 @@ class BookInsightService:
             "other": "Other",
         }
         return allowed.get(cleaned, "Other")
+
+    def _cache_key(self, book):
+        fingerprint = json.dumps(
+            {
+                "title": book.title,
+                "author": book.author,
+                "description": book.description,
+                "book_id": getattr(book, "id", None),
+            },
+            sort_keys=True,
+        )
+        digest = hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()
+        return f"book-insights:{digest}"

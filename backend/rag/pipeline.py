@@ -1,5 +1,9 @@
 from dataclasses import dataclass
+import hashlib
+import json
 from typing import Dict, List, Optional
+
+from django.core.cache import cache
 
 from .indexer import BookSimilarityService
 from .llm import ChatLLMClient
@@ -22,15 +26,22 @@ class BookRAGPipeline:
         self.llm_client = llm_client or ChatLLMClient()
 
     def answer(self, question, book_id=None, top_k=5):
+        cache_key = self._cache_key(question, book_id, top_k)
+        cached_response = cache.get(cache_key)
+        if cached_response is not None:
+            return cached_response
+
         retrieved_chunks = self.retriever.search(question=question, book_id=book_id, top_k=top_k)
         source_chunks = self._number_sources(retrieved_chunks)
 
         if not source_chunks:
-            return {
+            response = {
                 "answer": "No relevant book context was found for this question.",
                 "source_chunks": [],
                 "used_llm": False,
             }
+            cache.set(cache_key, response, timeout=3600)
+            return response
 
         context = self._build_context(source_chunks)
         citations = self._build_citations(source_chunks)
@@ -42,11 +53,13 @@ class BookRAGPipeline:
             answer = self._fallback_answer(question, source_chunks)
             used_llm = False
 
-        return {
+        response = {
             "answer": answer,
             "source_chunks": [self._serialize_source(chunk) for chunk in source_chunks],
             "used_llm": used_llm,
         }
+        cache.set(cache_key, response, timeout=3600)
+        return response
 
     def _number_sources(self, retrieved_chunks):
         source_chunks = []
@@ -94,3 +107,11 @@ class BookRAGPipeline:
             "score": chunk.score,
             "metadata": chunk.metadata,
         }
+
+    def _cache_key(self, question, book_id, top_k):
+        fingerprint = json.dumps(
+            {"question": question, "book_id": book_id, "top_k": top_k},
+            sort_keys=True,
+        )
+        digest = hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()
+        return f"rag-answer:{digest}"
