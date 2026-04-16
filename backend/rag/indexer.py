@@ -1,5 +1,3 @@
-from books.models import Book
-
 from .chunking import TextChunker
 from .embeddings import SentenceTransformerEmbedder
 from .retriever import SimilaritySearchRetriever
