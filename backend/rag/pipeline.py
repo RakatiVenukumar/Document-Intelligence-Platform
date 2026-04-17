@@ -45,20 +45,25 @@ class BookRAGPipeline:
 
         context = self._build_context(source_chunks)
         citations = self._build_citations(source_chunks)
+        llm_error = None
 
         try:
             answer = self.llm_client.generate(question=question, context=context, citations=citations)
             used_llm = True
-        except Exception:
+        except Exception as exc:
             answer = self._fallback_answer(question, source_chunks)
             used_llm = False
+            llm_error = f"{type(exc).__name__}: {exc}"
 
         response = {
             "answer": answer,
             "source_chunks": [self._serialize_source(chunk) for chunk in source_chunks],
             "used_llm": used_llm,
         }
-        cache.set(cache_key, response, timeout=3600)
+        if llm_error is not None:
+            response["llm_error"] = llm_error
+        if used_llm:
+            cache.set(cache_key, response, timeout=3600)
         return response
 
     def _number_sources(self, retrieved_chunks):
@@ -109,8 +114,16 @@ class BookRAGPipeline:
         }
 
     def _cache_key(self, question, book_id, top_k):
+        llm_provider = getattr(self.llm_client, "provider", "unknown")
+        llm_model = getattr(self.llm_client, "model", "unknown")
         fingerprint = json.dumps(
-            {"question": question, "book_id": book_id, "top_k": top_k},
+            {
+                "question": question,
+                "book_id": book_id,
+                "top_k": top_k,
+                "llm_provider": llm_provider,
+                "llm_model": llm_model,
+            },
             sort_keys=True,
         )
         digest = hashlib.sha256(fingerprint.encode("utf-8")).hexdigest()

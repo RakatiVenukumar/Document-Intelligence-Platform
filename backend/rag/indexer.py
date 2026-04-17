@@ -22,6 +22,10 @@ class BookEmbeddingIndexer:
 
         documents = [chunk.text for chunk in chunks]
         embeddings = self.embedder.embed_texts(documents)
+        # Fix: flatten embeddings if shape is [[[...]]] instead of [[...]]
+        if len(embeddings) == 1 and isinstance(embeddings[0], list) and isinstance(embeddings[0][0], list):
+            embeddings = embeddings[0]
+
         ids = [f"book-{book.id}-chunk-{chunk.index}" for chunk in chunks]
         metadatas = [
             {
