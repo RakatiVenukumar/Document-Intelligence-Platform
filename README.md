@@ -7,9 +7,17 @@ A full-stack Django + React application for scraping book data, storing metadata
 
 ## 1. Screenshots of the UI
 
-<!-- Add screenshots here. Place your images in docs/screenshots/ and reference them below. -->
+### Dashboard Overview
+![Dashboard showing book catalog and intelligence workspace](docs/screenshots/dashboard.png)
 
-*To be added by the user.*
+### Book Detail View
+![Book detail page for Atomic Habits](docs/screenshots/book-detail.png)
+
+### Q&A Input Page
+![Q&A input page for asking questions over indexed books](docs/screenshots/qa-input.png)
+
+### Q&A Answer Page
+![Q&A answer page showing LLM generated answer and source chunks](docs/screenshots/qa-answer.png)
 
 ---
 
